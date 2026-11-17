@@ -19,3 +19,4 @@ Acest proiect este un flux de automatizare realizat în n8n care preia mesajele 
    - citește înregistrările existente din fișierul `File.xlsx`;
    - adaugă rândul nou la finalul tabelului prin nodul `Merge` (modul `Append`), ca să nu se piardă datele vechi;
    - rescrie fișierul `.xlsx` actualizat pe disc.
+<img width="1420" height="219" alt="image" src="https://github.com/user-attachments/assets/1d2ffd66-2c2a-4e25-8127-1de5c94e490f" />
