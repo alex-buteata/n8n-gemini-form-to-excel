@@ -1,0 +1,362 @@
+{
+  "name": "workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Cerere",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nume"
+            },
+            {
+              "fieldLabel": "Email"
+            },
+            {
+              "fieldLabel": "Mesaj",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fcd8235a-d633-4a74-8e99-05f4ae04b5ff",
+      "name": "On form submission",
+      "webhookId": "dba6d259-75fd-40a6-8916-153384bfdba7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analizează datele trimise în formular și clasifică cererea în una dintre categoriile: Oferta, Suport sau Spam.\n\nNume: {{ $json.Nume }}\nEmail: {{ $json.Email }}\nMesaj: {{ $json.Mesaj }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3057f6c7-91f4-4406-8c87-22c8cd2059e4",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-4-hydrogen",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        208
+      ],
+      "id": "c38d8448-cf8d-4e92-b2d8-549adf1a1cf7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Nz1RGrQJ27z0GKqn",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "9f85ffae-3603-40a5-9fa4-907a5e4489de",
+              "leftValue": "={{ $json.output.categorie }}",
+              "rightValue": "=Spam",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        560,
+        -32
+      ],
+      "id": "1173240d-5853-4522-8f45-ad7deed07f31",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"nume\": \"Ion Popescu\",\n  \"email\": \"ion@exemplu.ro\",\n  \"categorie\": \"Oferta\",\n  \"rezumat\": \"Clientul dorește o ofertă de preț pentru automatizare.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        208
+      ],
+      "id": "23f8aef1-033a-4dbb-87c8-21e2c0b0784d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        176
+      ],
+      "id": "469bb44d-5063-44e6-8839-0236c68b3d80",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "C:\\Users\\Alex Buteata\\.n8n-files\\File.xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        272
+      ],
+      "id": "27befb21-ae55-44c0-a197-6d698d624265",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74556ed9-cf9c-446c-9ccb-b23f3bde6431",
+              "name": "Nume",
+              "value": "={{ $json.output.nume }}",
+              "type": "string"
+            },
+            {
+              "id": "50ae9a41-ad7d-4e2a-bc56-6a1a8a28848d",
+              "name": "Email",
+              "value": "={{ $json.output.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e003c360-7ad2-4ff6-8008-3a9496e902f3",
+              "name": "Categorie",
+              "value": "={{ $json.output.categorie }}",
+              "type": "string"
+            },
+            {
+              "id": "a7391b5d-1266-4f52-a9c8-ea77177442a9",
+              "name": "Rezumat",
+              "value": "={{ $json.output.rezumat }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        784,
+        -128
+      ],
+      "id": "13334e70-7f1f-458e-8704-edd5d8b41b9d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:\\Users\\Alex Buteata\\.n8n-files\\File.xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1008,
+        -128
+      ],
+      "id": "f17ba51a-25ea-4da5-942c-ee11d1535ce0",
+      "name": "Read/Write Files from Disk1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        80
+      ],
+      "id": "7d808b09-9de1-4128-a7df-0fef0aad522c",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1136,
+        144
+      ],
+      "id": "d26465b0-20e5-4c0d-91f6-6b5d82a283e5",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7f3755ec-45d2-4912-9e1d-a98a0c08b8a3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6cc01b92ef36c21fcbc30a79a0db4701dcbe9ff54eb650e28f8c89bbc0d35266"
+  },
+  "nodeGroups": [],
+  "id": "AWZPNiyI1W5m2yk7",
+  "tags": []
+}
